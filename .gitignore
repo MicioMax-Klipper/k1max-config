@@ -1,0 +1,24 @@
+# Runtime / logs / caches
+*.log
+*.tmp
+*.bak
+*.bak*
+*.old
+*.orig
+__pycache__/
+*.pyc
+
+# Firmware / binaries
+*.bin
+*.uf2
+*.hex
+*.elf
+*.o
+
+# Klipper generated/runtime state
+printer_data/logs/
+printer_data/gcodes/
+printer_data/comms/
+printer_data/database/
+printer_data/systemd/
+printer_data/backup/
