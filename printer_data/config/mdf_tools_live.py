@@ -153,7 +153,7 @@ class MDFLive:
 
     @mdf_mcu_command(
         "command",
-        "mdf_config oid=%c sample_ticks=%u df_threshold=%i safe_threshold=%i"
+        "mdf_config oid=%c sample_ticks=%u df_threshold=%i safe_threshold=%i required_hits=%c df_noise_floor=%i invert=%c df_log_min=%i"
     )
     def cmd_MDF_CONFIG(self, gcmd, mcu_cmd):
         oid = self._get_probe_oid()
@@ -162,15 +162,23 @@ class MDFLive:
         speed = gcmd.get_float("SPEED", 0.5)
         df = gcmd.get_int("DF", 1000)
         safe = gcmd.get_int("SAFE", 5000)
+        hits = gcmd.get_int("HITS", 2, minval=1, maxval=255)
+        df_noise_floor = gcmd.get_int("DF_NOISE_FLOOR", 500, minval=0)
+        polarity = gcmd.get_int("POLARITY", -1, minval=-1, maxval=1)
+        df_log_min = gcmd.get_int("DF_LOG_MIN", 500, minval=0)
+
+        if polarity == 0:
+            raise gcmd.error("POLARITY must be 1 or -1")
+        invert = 1 if polarity < 0 else 0
 
         dt = dz / speed
         sample_ticks = int(dt * 72000000)
 
-        mcu_cmd.send([oid, sample_ticks, df, safe])
+        mcu_cmd.send([oid, sample_ticks, df, safe, hits, df_noise_floor, invert, df_log_min])
 
         gcmd.respond_info(
-            "MDF configured: dz=%.4f speed=%.4f dt=%.4f ticks=%d df=%d safe=%d"
-            % (dz, speed, dt, sample_ticks, df, safe)
+            "MDF configured: dz=%.4f speed=%.4f dt=%.4f ticks=%d df=%d safe=%d hits=%d df_noise_floor=%d polarity=%d df_log_min=%d"
+            % (dz, speed, dt, sample_ticks, df, safe, hits, df_noise_floor, polarity, df_log_min)
         )
 
     @mdf_mcu_command(
@@ -215,6 +223,22 @@ class MDFLive:
                 params["d0"],
             )
         )
+
+    @mdf_mcu_command(
+        "command",
+        "mdf_clear"
+    )
+    def cmd_MDF_CLEAR(self, gcmd, mcu_cmd):
+        mcu_cmd.send([])
+        gcmd.respond_info("MDF dump buffer cleared")
+
+    @mdf_mcu_command(
+        "command",
+        "mdf_dump"
+    )
+    def cmd_MDF_DUMP(self, gcmd, mcu_cmd):
+        mcu_cmd.send([])
+        gcmd.respond_info("MDF dump requested")
 
     def cmd_MDF_RAW_LOOP(self, gcmd):
         count = gcmd.get_int("COUNT", 50)
