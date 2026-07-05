@@ -50,23 +50,25 @@ The final PRTouch Z home happens after the Cartographer mesh. This is important.
 
 ## Nozzle preparation
 
-The macro _PRTOUCH_PREP_NOZZLE does:
+Current START_PRINT behaviour:
 
-- heat the nozzle to at least 180 C if it is cold
-- retract to relieve pressure
-- run PRTOUCH_HOME_Z_COARSE
-- run the silicone brush / nozzle wipe macro
+- Before bed mesh, the nozzle is kept at a low pre-mesh temperature.
+- The nozzle is not wiped or PRTouch-probed before the mesh.
+- After bed mesh, START_PRINT prepares the nozzle immediately before the final Z reference.
+- For the normal Cartographer-mesh + PRTouch-ZTOUCH flow, the nozzle is heated to final print temperature, wiped with _NOZZLE_WIPE_SILICONE, then Z_TOUCH is run.
+- _LINE_PURGE reloads the nozzle immediately before printing.
 
-The wipe macro is tuned for my rear silicone brush position. Check the brush,
-Cartographer clearance, and nozzle path before using it blindly.
+The old PRTouch pre-mesh nozzle-prep macros were removed.
+The live nozzle-cleaning primitive is _NOZZLE_WIPE_SILICONE.
 
 ## Z offset
 
-The PRTOUCH_HOME_Z macro applies a small G-code Z offset after ACCURATE_HOME_Z.
+PRTOUCH_HOME_Z now dispatches to _Z_PRTOUCH / Z_PRTOUCH.
+Z_PRTOUCH is implemented by klippy/extras/prtouch_z.py and bakes the fixed offset into kinematic Z, keeping Fluidd's G-code offset clean.
 
 Current tested baseline on my printer:
 
-    variable_z_offset: 0.05
+    variable_z_offset: 0.00
 
 Higher values move the nozzle farther from the bed. Lower values move it closer.
 
