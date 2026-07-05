@@ -95,6 +95,49 @@ grumpyscreen.ini is included because the active GuppyScreen symlink points to:
 
     /usr/data/printer_data/config/grumpyscreen.ini
 
+## Probe manager and custom Cartographer mount
+
+This configuration uses `probe_manager.cfg` and `probe_select.cfg` to dispatch
+homing, final Z touch, and bed mesh between different probes.
+
+Current tested default on my printer:
+
+    PROBE_SELECT HOME=cartographer ZTOUCH=prtouch MESH=cartographer
+
+Meaning:
+
+- Cartographer is used for Z homing.
+- Cartographer is used for bed mesh.
+- Creality PRTouch is used for the final Z reference before printing.
+
+Do not remove or bypass the probe manager macros unless you also rewrite
+`START_PRINT`, `Z_TOUCH`, and the homing dispatch logic.
+
+### Custom Cartographer offset
+
+My Cartographer is mounted on a custom support.
+
+Current tested offset on my printer:
+
+    [cartographer]
+    x_offset: -21.0
+    y_offset: 0.0
+
+This is not a stock/default offset. It depends on the physical mount.
+
+The bed mesh area is limited accordingly:
+
+    [bed_mesh]
+    mesh_min: 10,10
+    mesh_max: 278,270
+
+Do not copy these values blindly to another printer. Measure your own
+Cartographer nozzle/probe offset and verify that all mesh points are reachable
+before running homing, probing, mesh, or `START_PRINT`.
+
+Wrong Cartographer offsets or mesh limits can cause move-out-of-range errors,
+bad probing positions, nozzle/bed contact, or mechanical crashes.
+
 ## Brutal install outline
 
 Backup your existing configuration first.
@@ -121,9 +164,12 @@ Then restart Klipper according to your installation.
 
 Do not blindly use this on another K1 Max without checking:
 
-- Cartographer offsets and position.
+- Cartographer physical mount and `x_offset` / `y_offset`.
+- Reachable bed mesh area for the selected probe.
+- `PROBE_SELECT` defaults in `probe_manager.cfg`.
+- Whether final `Z_TOUCH` is Cartographer or PRTouch.
 - Brush / silicone wipe coordinates.
-- bed mesh area.
-- filament sensor config.
-- START_PRINT parameters.
-- firmware/host branch compatibility.
+- Plate/material Z offset macro.
+- Filament sensor config.
+- `START_PRINT` parameters.
+- Firmware/host branch compatibility.
